@@ -32,17 +32,11 @@ def mode_two():
         else:
             print("Ви ввели дані у невірному форматі. Спробуйте ще раз.")
 
-    # chunks = setting2.split("-")
-    # print("chunks:", chunks)
-
-
     settings = {
         "selected_regions": selected_regions, "date": date
     }
 
     generate_report(settings)
-    # print(f"Обрані налаштування: Регіони={selected_regions}, Дата={date}")
-
 
 
 def main():

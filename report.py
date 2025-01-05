@@ -2,8 +2,9 @@ import pandas as pd
 import os
 import logging
 from datetime import datetime
+import sys
 
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class DateFormatError(Exception):
     """Exception raised when a date format is incorrect."""
@@ -47,8 +48,6 @@ def search_files(files, selected_regions, start_month, end_month, start_year, en
     :param end_year: Selected end year (e.g., 2021).
 
     :return: List of filtered file paths that match the criteria.
-
-    :raises FileFormatError: If a file format is incorrect.
     """
 
     filtered_files = []
@@ -159,7 +158,7 @@ def parse_date_from_settings(date):
 
 
 def generate_report(settings = None):
-    print("Generating report...")
+    logging.info(f"Generating report. Settings: {settings}")
 
     folder_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -168,20 +167,30 @@ def generate_report(settings = None):
     files = os.listdir(reports_folder)
     files = [file for file in files if file.endswith(".xlsx")]
 
-    print("files:", files)
+    if len(files) == 0:
+        logging.info(f"No report files found in {reports_folder}")
+        sys.exit(0)
 
-    # if settings:
-    #     date = settings["date"]
-    #     selected_regions = settings["selected_regions"]
-    #     parsed_date = parse_date(date)
-    #     files = search_files(files, selected_regions, parsed_date["start_month"], parsed_date["end_month"], parsed_date["start_year"], parsed_date["end_year"])
-    #
-    # if files:
-    #     result = summ_files(files, reports_folder)
-    #     current_date = datetime.now().strftime("%m_%d_%Y")
-    #     result_file_name = f"dgidpl_report_summary_{current_date}.xlsx"
-    #     result.to_excel(result_file_name, index=False)
-    #     print(f"Файл з результатом збережений: {result_file_name}")
+
+    if settings:
+        date = settings["date"]
+        selected_regions = settings["selected_regions"]
+        try:
+            parsed_date = parse_date_from_settings(date)
+        except DateFormatError as e:
+            logging.error(e)
+            sys.exit(0)
+        files = search_files(files, selected_regions, parsed_date["start_month"], parsed_date["end_month"], parsed_date["start_year"], parsed_date["end_year"])
+
+    if files:
+        result = summ_files(files, reports_folder)
+        if result:
+            current_date = datetime.now().strftime("%m_%d_%Y")
+            result_file_name = f"dgidpl_report_summary_{current_date}.xlsx"
+            result.to_excel(result_file_name, index=False)
+            logging.info(f"File with result saved: {result_file_name}")
+        else:
+            logging.info(f"Result is empty")
 
 
 generate_report()
