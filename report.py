@@ -194,6 +194,3 @@ def generate_report(settings = None):
         logging.info(f"File with result saved: {result_file_name}")
     else:
         logging.info(f"Result is empty")
-
-
-generate_report()
