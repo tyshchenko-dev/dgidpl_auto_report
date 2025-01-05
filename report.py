@@ -74,12 +74,43 @@ def search_files(files, selected_regions, start_month, end_month, start_year, en
 
 
 def summ_files(files, reports_folder):
-    dataframes = [pd.read_excel(os.path.join(reports_folder, file)) for file in files]
-    combined_df = pd.concat(dataframes, ignore_index=True)
-    result = combined_df.groupby("Критерії", as_index=False)[
-        ["К-сть де є CR", "К-сть де немає CR", "Загальна к-сть"]
-    ].sum()
-    return result
+    """
+    Summarize report files by date range and selected regions.
+
+    :param files: list of filenames in report folder
+    :param reports_folder: string path to report folder
+    :return: dataframe with summary
+    """
+
+    required_columns = ["Критерії", "К-сть де є CR", "К-сть де немає CR", "Загальна к-сть"]
+
+    validated_dataframes = []
+
+    for filename in files:
+        full_path = os.path.join(reports_folder, filename)
+        try:
+            current_df = pd.read_excel(full_path)
+            if not current_df.empty and set(required_columns).issubset(current_df.columns):
+                validated_dataframes.append(current_df)
+        except FileNotFoundError:
+            logging.error(f"File {full_path} not found")
+            continue
+        except Exception as e:
+            logging.error(f"Read file {full_path} error: {e}")
+            continue
+
+
+    combined_df = pd.concat(validated_dataframes, ignore_index=True)
+
+    if not combined_df.empty:
+        result = combined_df.groupby("Критерії", as_index=False)[
+            ["К-сть де є CR", "К-сть де немає CR", "Загальна к-сть"]
+        ].sum()
+
+        return result
+    else:
+        return None
+
 
 
 def parse_date_from_settings(date):
