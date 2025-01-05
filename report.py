@@ -3,22 +3,75 @@ import os
 import logging
 from datetime import datetime
 
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+
+class DateFormatError(Exception):
+    """Exception raised when a date format is incorrect."""
+    pass
+
+def parse_from_filename(filename):
+    """
+    Split filename into region, month and year
+
+    :param filename: String with name of the file, example: Київська_01_2025.xlsx
+
+    :return: tuple (region, month_str, year_str)
+    """
+
+    try:
+        parts = filename.split("_")
+
+        if len(parts) != 3:
+            raise ValueError(f"File {filename} has incorrect file format")
+
+        region, month_str, year_str = parts
+        year_str = year_str.replace(".xlsx", "").strip()
+        region = region.strip()
+        return (region, month_str, year_str)
+    except ValueError:
+        logging.error(f"File name {filename} has incorrect format")
+
+
 
 def search_files(files, selected_regions, start_month, end_month, start_year, end_year):
+    """
+    Search and filter report files by date range and selected regions.
+    The function filters a list of file paths based on the specified regions and date range.
+    It expects file names to follow the format: <region>_<month>_<year>.xlsx.
+
+    :param files: List of paths to report files.
+    :param selected_regions: List of region names selected by the user.
+    :param start_month: Selected start month (1-12).
+    :param end_month: Selected end month (1-12).
+    :param start_year: Selected start year (e.g., 2020).
+    :param end_year: Selected end year (e.g., 2021).
+
+    :return: List of filtered file paths that match the criteria.
+
+    :raises FileFormatError: If a file format is incorrect.
+    """
+
     filtered_files = []
-    for file in files:
-        parts = file.split("_")
-        if len(parts) == 3:
-            name, file_month, file_year = parts
-            file_year = file_year.replace(".xlsx", "").strip()
-            name = name.strip()
-            if name in selected_regions:
-                file_month = int(file_month)
-                file_year = int(file_year)
-                if file_year >= start_year and file_year <= end_year:
-                    if file_month >= start_month and file_month <= end_month:
-                        filtered_files.append(file)
+
+    for file_path in files:
+        try:
+            (region, month_str, year_str) = parse_from_filename(file_path)
+
+            if region not in selected_regions:
+                continue
+
+            file_month = int(month_str)
+            file_year = int(year_str)
+
+            if file_year >= start_year and file_year <= end_year and file_month >= start_month and file_month <= end_month:
+                filtered_files.append(file_path)
+
+        except ValueError:
+            logging.error(f"File name {file_path} has incorrect format")
+            continue
+
     return filtered_files
+
 
 def summ_files(files, reports_folder):
     dataframes = [pd.read_excel(os.path.join(reports_folder, file)) for file in files]
@@ -28,19 +81,18 @@ def summ_files(files, reports_folder):
     ].sum()
     return result
 
-class DateFormatError(Exception):
-    """Exception raised when a date format is incorrect."""
-    pass
 
-
-def parse_date(date):
+def parse_date_from_settings(date):
     """
     Split date string "MM_YYYY-MM_YYYY" and return dict with date components.
 
-    :param date: Date string in format "MM_YYYY-MM_YYYY", example, "01_2020-12_2020".
+    :param date: String in format "MM_YYYY-MM_YYYY", example, "01_2020-12_2020".
+
     :return: Dict with keys 'start_month', 'start_year', 'end_month', 'end_year'.
+
     :raises DateFormatError: If date format is invalid.
     """
+
     try:
         chunks = date.split("-")
         if len(chunks) != 2:
@@ -71,7 +123,8 @@ def parse_date(date):
             "end_year": end_year,
         }
     except (ValueError, IndexError) as e:
-        raise DateFormatError("Cannot parse date, invalid format {date}") from e
+        logging.error(f"Value error while parsing date '{date}': {e}")
+        raise DateFormatError(f"Cannot parse date, invalid format {date}") from e
 
 
 def generate_report(settings = None):
