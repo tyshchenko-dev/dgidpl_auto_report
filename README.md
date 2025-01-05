@@ -27,7 +27,6 @@ This repository contains a console application that automatically processes Exce
 - **`main.py`** — Script with the start menu for selecting the operation mode.
 - **`requirements.txt`** — List of required libraries.
 - **`reports/`** — Directory for placing input Excel files.
-- **`LICENSE`** — License file.
 - **`README.md`** — This file.
 
 ---
