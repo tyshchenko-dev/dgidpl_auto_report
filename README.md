@@ -35,7 +35,7 @@ This repository contains a console application that automatically processes Exce
 
 ### Requirements
 
-- **Python 3.6+**
+- **Python 3.12+**
 
 **Libraries**:
 - `pandas`
