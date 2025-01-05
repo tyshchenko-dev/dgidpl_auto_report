@@ -182,15 +182,18 @@ def generate_report(settings = None):
             sys.exit(0)
         files = search_files(files, selected_regions, parsed_date["start_month"], parsed_date["end_month"], parsed_date["start_year"], parsed_date["end_year"])
 
-    if files:
-        result = summ_files(files, reports_folder)
-        if result:
-            current_date = datetime.now().strftime("%m_%d_%Y")
-            result_file_name = f"dgidpl_report_summary_{current_date}.xlsx"
-            result.to_excel(result_file_name, index=False)
-            logging.info(f"File with result saved: {result_file_name}")
-        else:
-            logging.info(f"Result is empty")
+    if len(files) == 0:
+        logging.info(f"No report files found in {reports_folder}")
+        sys.exit(0)
+
+    result = summ_files(files, reports_folder)
+    if not result.empty:
+        current_date = datetime.now().strftime("%m_%d_%Y")
+        result_file_name = f"dgidpl_report_summary_{current_date}.xlsx"
+        result.to_excel(result_file_name, index=False)
+        logging.info(f"File with result saved: {result_file_name}")
+    else:
+        logging.info(f"Result is empty")
 
 
 generate_report()
