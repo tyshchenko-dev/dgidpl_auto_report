@@ -2,17 +2,22 @@ import questionary
 import emoji
 import re
 from report import generate_report
+import logging
+import config
 
 
 def mode_one():
-    print(f"{emoji.emojize(':hammer_and_wrench:')} Обрано режим 1: Створення звіту на основі всіх файлів.")
+    logging.info(f"{emoji.emojize(':hammer_and_wrench:')} Обрано режим 1: Створення звіту на основі всіх файлів.")
     generate_report()
 
 
 def mode_two():
-    print(f"{emoji.emojize(':bar_chart:')} Обрано режим 2: Створення звіту по даті і області.")
+    logging.info(f"{emoji.emojize(':bar_chart:')} Обрано режим 2: Створення звіту по даті і області.")
 
-    regions = ["Крим","Вінницька","Волинська","Дніпропетровська","Донецька","Житомирська","Закарпатська","Запорізька","Івано-Франківська","Київська","Кіровоградська","Луганська","Львівська","Миколаївська","Одеська","Полтавська","Рівненська","Сумська","Тернопільська","Харківська","Херсонська","Хмельницька","Черкаська","Чернівецька","Чернігівська","Київ","Севастополь"]
+    regions = ["Крим", "Вінницька", "Волинська", "Дніпропетровська", "Донецька", "Житомирська", "Закарпатська",
+               "Запорізька", "Івано-Франківська", "Київська", "Кіровоградська", "Луганська", "Львівська",
+               "Миколаївська", "Одеська", "Полтавська", "Рівненська", "Сумська", "Тернопільська", "Харківська",
+               "Херсонська", "Хмельницька", "Черкаська", "Чернівецька", "Чернігівська", "Київ", "Севастополь"]
 
     selected_regions = questionary.checkbox(
         "Оберіть області для звіту, можна обрати відразу декілька областей:",
@@ -20,7 +25,7 @@ def mode_two():
     ).ask()
 
     if not selected_regions:
-        print("Ви нічого не обрали. Програма завершена.")
+        logging.info("Ви нічого не обрали. Програма завершена.")
         return
 
     region_pattern = r"\d{2}\_\d{4}\-\d{2}\_\d{4}"
@@ -30,7 +35,7 @@ def mode_two():
         if re.fullmatch(region_pattern, date):
             break
         else:
-            print("Ви ввели дані у невірному форматі. Спробуйте ще раз.")
+            logging.info("Ви ввели дані у невірному форматі. Спробуйте ще раз.")
 
     settings = {
         "selected_regions": selected_regions, "date": date
@@ -40,18 +45,20 @@ def mode_two():
 
 
 def main():
+    config.setup_logging()
     greeting = [
         f"{emoji.emojize(':police_officer:')} Привіт, це скрипт який допомагає зформувати статистику затримань по всій Україні.",
         f"{emoji.emojize(':classical_building:')} Розроблений для Департаменту головної інспекції та дотримання прав людини."
     ]
-    print(greeting[0]) #show message 1
-    print(greeting[1]) #show message 2
+    logging.info(greeting[0])  # show message 1
+    logging.info(greeting[1])  # show message 2
 
     choice = questionary.select(
         "Оберіть режим роботи скрипта:",
         choices=[
             "Звіт на основі всіх файлів",
             "Звіт по даті і області",
+            "Завершити роботу"
         ]).ask()
 
     if choice == "Звіт на основі всіх файлів":
@@ -59,7 +66,7 @@ def main():
     elif choice == "Звіт по даті і області":
         mode_two()
     else:
-        print("Робота завершена.")
+        logging.info("Робота завершена.")
 
 
 if __name__ == "__main__":

@@ -4,8 +4,6 @@ import logging
 from datetime import datetime
 import sys
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 class DateFormatError(Exception):
     """Exception raised when a date format is incorrect."""
     pass
@@ -163,6 +161,10 @@ def generate_report(settings = None):
     folder_path = os.path.dirname(os.path.realpath(__file__))
 
     reports_folder = os.path.join(folder_path, "reports")
+
+    if not os.path.exists(reports_folder):
+        logging.info(f"Folder {reports_folder} not found. Exiting.")
+        sys.exit(0)
 
     files = os.listdir(reports_folder)
     files = [file for file in files if file.endswith(".xlsx")]
